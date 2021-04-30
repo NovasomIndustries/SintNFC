@@ -118,18 +118,22 @@ uint8_t	aaa=0;
 		  NFC_Read(NFC_2NDBUFBLK);
 		  NFC_Read(NFC_3RDBUFBLK);
 #endif
-#define	READ_ONLY
+//#define	READ_ONLY
 		  if ( aaa == 0 )
 		  {
 #ifndef	READ_ONLY
-			  encode(2);
+			  encode(1);
 			  NFC_Write(NFC_1STBUFBLK,buf_sect[NFC_1STBUFBLK]);
 			  NFC_Write(NFC_2NDBUFBLK,buf_sect[NFC_2NDBUFBLK]);
 			  NFC_Write(NFC_3RDBUFBLK,buf_sect[NFC_3RDBUFBLK]);
 #endif
 			  aaa = 1;
 		  }
-		  decode(2);
+		  if ( decode(2) == 1 )
+			  if ( decode(1) == 1 )
+				  if ( decode(0) == 1 )
+				    	logUsart("Invalid or uninitialized tag\r\n");
+
 		  HAL_Delay(1000);
 		  NFC_InitializeBufs();
 	  }

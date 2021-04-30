@@ -24,8 +24,24 @@ rotate left 7
 subtract uid
 */
 
-static 	uint8_t cuid[UID_SIZE], result[UID_SIZE] , shftnum;
 uint8_t host_buff[64];
+
+static void NFC_MessBuffer(void)
+{
+uint32_t random_number,j;
+
+	for(j=0;j<16;j++)
+	{
+		HAL_RNG_GenerateRandomNumber(&hrng, &random_number);
+		host_buff[j*4] 		= (random_number>>24) & 0xff;
+		host_buff[(j*4)+1] 	= (random_number>>16) & 0xff;
+		host_buff[(j*4)+2] 	= (random_number>>8)  & 0xff;
+		host_buff[(j*4)+3] 	=  random_number      & 0xff;
+	}
+}
+
+#ifdef ALGO_1
+static 	uint8_t cuid[UID_SIZE], result[UID_SIZE] , shftnum;
 
 static uint8_t ror(uint8_t value, uint8_t number_of_shifts)
 {
@@ -117,19 +133,7 @@ static void NFC_FillHostBuffer(void)
 	NFC_SilentRead_buff(NFC_3RDBUFBLK,&host_buff[48]);
 }
 
-static void NFC_MessBuffer(void)
-{
-uint32_t random_number,j;
 
-	for(j=0;j<16;j++)
-	{
-		HAL_RNG_GenerateRandomNumber(&hrng, &random_number);
-		host_buff[j*4] 		= (random_number>>24) & 0xff;
-		host_buff[(j*4)+1] 	= (random_number>>16) & 0xff;
-		host_buff[(j*4)+2] 	= (random_number>>8)  & 0xff;
-		host_buff[(j*4)+3] 	=  random_number      & 0xff;
-	}
-}
 
 void encode(uint8_t tries)
 {
@@ -157,7 +161,7 @@ uint8_t i;
     }
 }
 
-void decode(uint8_t tries)
+uint8_t decode(uint8_t tries)
 {
 uint8_t i;
 
@@ -181,4 +185,44 @@ uint8_t i;
     logUsart("\n");
 }
 
+#endif // ALGO_1
+#ifdef ALGO_2
+#endif // ALGO_2
 
+void encode(uint8_t tries)
+{
+	NFC_InitializeBufs();
+	buf_sect[NFC_3RDBUFBLK][0x0c] = uid[0]+tries;
+	buf_sect[NFC_3RDBUFBLK][0x08] = uid[1]+tries;
+	buf_sect[NFC_3RDBUFBLK][0x04] = uid[2]+tries;
+	buf_sect[NFC_3RDBUFBLK][0x00] = uid[3]+tries;
+}
+
+uint8_t decode(uint8_t tries)
+{
+uint8_t buffer[16];
+
+	NFC_SilentRead_buff(NFC_3RDBUFBLK,buffer);
+
+	NFC_MessBuffer();
+	if (( buffer[0x0c] - uid[0] ) == tries)
+	{
+		if (( buffer[0x08] - uid[1] ) == tries)
+		{
+			if (( buffer[0x04] - uid[2] ) == tries)
+			{
+				if (( buffer[0x00] - uid[3] ) == tries)
+				{
+					NFC_SilentRead_buff(NFC_0BUFBLK,&host_buff[0]);
+					NFC_SilentRead_buff(NFC_1STBUFBLK,&host_buff[16]);
+					NFC_SilentRead_buff(NFC_2NDBUFBLK,&host_buff[32]);
+					NFC_SilentRead_buff(NFC_3RDBUFBLK,&host_buff[48]);
+			    	logUsart("DECODE RESULT with tries %d : Success\r\n",tries);
+			    	return 0;
+				}
+			}
+		}
+	}
+	logUsart("DECODE RESULT with tries %d: Error\r\n", tries);
+	return 1;
+}

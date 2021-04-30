@@ -9,7 +9,7 @@
 #define INC_SINTNFC_NFC_ENCDEC_H_
 
 extern	void encode(uint8_t tries);
-extern	void decode(uint8_t tries);
+extern	uint8_t decode(uint8_t tries);
 
 
 
