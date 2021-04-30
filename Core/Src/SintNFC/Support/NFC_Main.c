@@ -37,7 +37,7 @@ uint32_t NFC_GetCard(void)
 	uid_len = PN532_ReadPassiveTarget(&pn532, uid, PN532_MIFARE_ISO14443A, 1000);
 	if (uid_len != PN532_STATUS_ERROR)
 	{
-		logUsart("Found card with UID: ");
+		logUsart("\n\rFound card with UID: ");
 		for (uint8_t i = 0; i < uid_len; i++)
 			logUsart("%02x ", uid[i]);
 		logUsart("\r\n");
@@ -106,5 +106,59 @@ uint32_t NFC_Write(uint32_t block_number,uint8_t *buf)
 	if (pn532_error != PN532_ERROR_NONE)
 		return 1;
 	return 0;
+}
+
+void NFC_DumpCard(void)
+{
+	  NFC_Read(NFC_0BUFBLK);
+	  NFC_Read(NFC_1STBUFBLK);
+	  NFC_Read(NFC_2NDBUFBLK);
+	  NFC_Read(NFC_3RDBUFBLK);
+}
+
+void NFC_WriteCard(uint32_t tries)
+{
+	  encode(tries);
+	  NFC_Write(NFC_1STBUFBLK,buf_sect[NFC_1STBUFBLK]);
+	  NFC_Write(NFC_2NDBUFBLK,buf_sect[NFC_2NDBUFBLK]);
+	  NFC_Write(NFC_3RDBUFBLK,buf_sect[NFC_3RDBUFBLK]);
+}
+
+uint8_t NFC_GetTries(void)
+{
+	if ( decode(2) == 2 )
+		return 2;
+	if ( decode(1) == 1 )
+		return 1;
+	if ( decode(0) == 0 )
+		return 0;
+	return 255;
+}
+
+
+void NFC_MainLoop(void)
+{
+uint8_t	tries;
+#define	DUMP_TAG	1
+	if ( NFC_GetCard() == 0 )
+	{
+		#ifdef DUMP_TAG
+		NFC_DumpCard();
+		#endif
+		#ifdef	WRITE_CARD
+		NFC_WriteCard(tries);
+		NFC_DumpCard();
+		#endif
+		tries = NFC_GetTries();
+		switch ( tries )
+		{
+		case 2 :
+		case 1 :
+		case 0 : logUsart("TAG has %d tries\r\n",tries);break;
+		case 255 : 	logUsart("Invalid tag\r\n");break;
+		}
+		HAL_Delay(1000);
+		NFC_InitializeBufs();
+	}
 }
 

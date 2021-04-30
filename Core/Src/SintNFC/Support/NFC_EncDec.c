@@ -217,12 +217,10 @@ uint8_t buffer[16];
 					NFC_SilentRead_buff(NFC_1STBUFBLK,&host_buff[16]);
 					NFC_SilentRead_buff(NFC_2NDBUFBLK,&host_buff[32]);
 					NFC_SilentRead_buff(NFC_3RDBUFBLK,&host_buff[48]);
-			    	logUsart("DECODE RESULT with tries %d : Success\r\n",tries);
-			    	return 0;
+			    	return tries;
 				}
 			}
 		}
 	}
-	logUsart("DECODE RESULT with tries %d: Error\r\n", tries);
-	return 1;
+	return 255;
 }

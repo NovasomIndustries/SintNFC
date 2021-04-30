@@ -26,5 +26,6 @@ extern	uint32_t NFC_Write(uint32_t block_number,uint8_t *buf);
 extern	void NFC_InitializeBufs(void);
 extern	uint32_t NFC_SilentRead(uint32_t block_number);
 extern	uint32_t NFC_SilentRead_buff(uint32_t block_number,uint8_t *buffer);
+extern	void NFC_MainLoop(void);
 
 #endif /* INC_SINTNFC_NFC_MAIN_H_ */

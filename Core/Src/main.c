@@ -75,8 +75,8 @@ static void MX_TIM6_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-uint8_t	aaa=0;
-  /* USER CODE END 1 */
+
+	/* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -110,33 +110,7 @@ uint8_t	aaa=0;
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if ( NFC_GetCard() == 0 )
-	  {
-		  NFC_Read(0);
-#ifdef DUMP_TAG
-		  NFC_Read(NFC_1STBUFBLK);
-		  NFC_Read(NFC_2NDBUFBLK);
-		  NFC_Read(NFC_3RDBUFBLK);
-#endif
-//#define	READ_ONLY
-		  if ( aaa == 0 )
-		  {
-#ifndef	READ_ONLY
-			  encode(1);
-			  NFC_Write(NFC_1STBUFBLK,buf_sect[NFC_1STBUFBLK]);
-			  NFC_Write(NFC_2NDBUFBLK,buf_sect[NFC_2NDBUFBLK]);
-			  NFC_Write(NFC_3RDBUFBLK,buf_sect[NFC_3RDBUFBLK]);
-#endif
-			  aaa = 1;
-		  }
-		  if ( decode(2) == 1 )
-			  if ( decode(1) == 1 )
-				  if ( decode(0) == 1 )
-				    	logUsart("Invalid or uninitialized tag\r\n");
-
-		  HAL_Delay(1000);
-		  NFC_InitializeBufs();
-	  }
+	  NFC_MainLoop();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
